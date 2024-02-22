@@ -16,7 +16,7 @@ sleep(2)  # Keep it on for 2 seconds
 led.color = (0, 0, 1)
 sleep(2)  # Keep it on for 2 seconds
 
-# Turn off all colors (LED off)
+# Turn off all colors (LED off )
 led.off()
 
 # Release the resources (optional)
