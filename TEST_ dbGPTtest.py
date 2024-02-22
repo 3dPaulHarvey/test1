@@ -62,7 +62,7 @@ async def homing():
 async def extend():
     c_data = await c.query()
     position_10 = c_data.values[moteus.Register.POSITION]
-    desired_pos = position_10 - 1 #1.74
+    desired_pos = position_10 - 1.74 #1.74
     kp = None
     feedforward = None
     max_torque = 0.0
@@ -104,7 +104,7 @@ async def extend():
 async def sheath():
     c_data = await c.query()
     position_10 = c_data.values[moteus.Register.POSITION]
-    desired_pos = position_10 + 0.6  #1.6 Opposite direction
+    desired_pos = position_10 + 1.6  #1.6 Opposite direction
     obstruction_encountered = False
 
     while True:
