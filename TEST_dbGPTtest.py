@@ -37,7 +37,7 @@ async def homing():
             obstruction_encountered = True
             led.color = RED
             
-            await c.set_position(position=math.nan, velocity=-0.5, kp_scale=1, maximum_torque=None, watchdog_timeout=math.nan)
+            await c.set_position(position=math.nan, velocity=-1, kp_scale=1, maximum_torque=None, watchdog_timeout=math.nan)
             await asyncio.sleep(.25) 
             
             c_data = await c.query()
@@ -62,7 +62,7 @@ async def homing():
 async def extend():
     c_data = await c.query()
     position_10 = c_data.values[moteus.Register.POSITION]
-    desired_pos = position_10 - 1.74 #1.74
+    desired_pos = position_10 - 1.75 #1.74
     kp = None
     feedforward = None
     max_torque = 0.0
@@ -79,7 +79,7 @@ async def extend():
         result = await c.set_position(
             position=math.nan,
             stop_position=desired_pos,
-            velocity=10.0, #15 #10
+            velocity=12.0, #15 #10
             maximum_torque=None,
             velocity_limit=30.0,
             watchdog_timeout=math.nan,
@@ -104,19 +104,19 @@ async def extend():
 async def sheath():
     c_data = await c.query()
     position_10 = c_data.values[moteus.Register.POSITION]
-    desired_pos = position_10 + 1.6  #1.6 Opposite direction
+    desired_pos = position_10 + 1.55  #1.6 Opposite direction
     obstruction_encountered = False
 
     while True:
         c_data = await c.query()
         c_torque = c_data.values.get(moteus.Register.TORQUE, 0)
 
-        if c_torque > 5:
+        if c_torque > 1:
             obstruction_encountered = True
             led.color = RED
             
-            await c.set_position(position=math.nan, velocity=-0.5, kp_scale=1, maximum_torque=None, watchdog_timeout=math.nan)
-            await asyncio.sleep(.25) 
+            await c.set_position(position=math.nan, velocity=-1, kp_scale=1, maximum_torque=None, watchdog_timeout=math.nan)
+            await asyncio.sleep(.50) 
             
             c_data = await c.query()
             current_position = c_data.values[moteus.Register.POSITION]
