@@ -79,7 +79,7 @@ async def extend():
         result = await c.set_position(
             position=math.nan,
             stop_position=desired_pos,
-            velocity=1.0, #15 #10
+            velocity=10.0, #15 #10
             maximum_torque=None,
             velocity_limit=30.0,
             watchdog_timeout=math.nan,
@@ -127,7 +127,7 @@ async def sheath():
         result = await c.set_position(
             position=math.nan,
             stop_position=desired_pos,
-            velocity=1, #15
+            velocity=10.0, #15
             maximum_torque=None,
             velocity_limit=30.0,
             watchdog_timeout=math.nan,
