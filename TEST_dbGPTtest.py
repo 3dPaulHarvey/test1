@@ -1,7 +1,16 @@
+ import time
+import Adafruit_GPIO.SPI as SPI
+import Adafruit_MCP3008
+
 import asyncio
 import math
 from gpiozero import RGBLED, Button
 import moteus
+
+# Hardware SPI configuration:
+SPI_PORT   = 0
+SPI_DEVICE = 0
+mcp = Adafruit_MCP3008.MCP3008(spi=SPI.SpiDev(SPI_PORT, SPI_DEVICE))
 
 # Initialize Moteus controller and GPIO
 c = moteus.Controller()
@@ -62,7 +71,7 @@ async def homing():
 async def extend():
     c_data = await c.query()
     position_10 = c_data.values[moteus.Register.POSITION]
-    desired_pos = position_10 - 1.75 #1.74
+    desired_pos = position_10 - 1.75 #1.75
     kp = None
     feedforward = None
     max_torque = 0.0
@@ -100,11 +109,12 @@ async def extend():
     await c.set_stop()
     await asyncio.sleep(0.1)
     await c.set_position(position=math.nan, velocity=0.0, kp_scale=10, maximum_torque=None, watchdog_timeout=math.nan)
+    
 
 async def sheath():
     c_data = await c.query()
     position_10 = c_data.values[moteus.Register.POSITION]
-    desired_pos = position_10 + 1.55  #1.6 Opposite direction
+    desired_pos = position_10 + 1.55  #1.55 Opposite direction
     obstruction_encountered = False
 
     while True:
@@ -201,6 +211,12 @@ async def main():
             
             # Call the extend function
             await extend()
+
+            for delayTime in range (1,10):
+                await c.set_position(position=math.nan, velocity=0.0, kp_scale=10, maximum_torque=None, watchdog_timeout=math.nan)
+                print(delayTime)
+                await asyncio.sleep(.1)
+
             
             # Check if the extend limit switch button is pressed
             if extend_button.is_pressed:
@@ -214,7 +230,7 @@ async def main():
             # Wait for the activate button to be pressed to transition to the sheathing state
             if activate_button.is_pressed:
                 state = "sheathing"
-            await asyncio.sleep(0.1)  # Short delay to prevent rapid state changes
+            #await asyncio.sleep(0.1)  # Short delay to prevent rapid state changes
 
         elif state == "sheathing":
             print("Sheathing...")
@@ -233,7 +249,8 @@ async def main():
             led.color = (1, 1, 0)  # Yellow
             # Handle the error appropriately
             # For now, we'll go back to the initial state
-            await asyncio.sleep(1)
+            await asyncio.sleep(0.1)
+            state = "initial" 
        
         elif state == "initial":
             print("Initial state. Checking system status...")
