@@ -1,4 +1,4 @@
- import time
+import time
 import Adafruit_GPIO.SPI as SPI
 import Adafruit_MCP3008
 
@@ -24,6 +24,7 @@ safety_button = Button(3)
 BLUE = (0, 0, 1)
 GREEN = (0, 1, 0)
 RED = (1, 0, 0)
+
 
 async def check_safety_button():
     if not safety_button.is_pressed:
