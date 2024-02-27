@@ -11,6 +11,8 @@ import moteus
 SPI_PORT   = 0
 SPI_DEVICE = 0
 mcp = Adafruit_MCP3008.MCP3008(spi=SPI.SpiDev(SPI_PORT, SPI_DEVICE))
+speed_value = 1.0
+speed_mapped = 1.0
 
 # Initialize Moteus controller and GPIO
 c = moteus.Controller()
@@ -25,6 +27,8 @@ BLUE = (0, 0, 1)
 GREEN = (0, 1, 0)
 RED = (1, 0, 0)
 
+def map_value(x, in_min, in_max, out_min, out_max):
+    return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
 
 async def check_safety_button():
     if not safety_button.is_pressed:
@@ -69,7 +73,7 @@ async def homing():
     return obstruction_encountered
 
 
-async def extend():
+async def extend(extend_speed):
     c_data = await c.query()
     position_10 = c_data.values[moteus.Register.POSITION]
     desired_pos = position_10 - 1.75 #1.75
@@ -89,7 +93,7 @@ async def extend():
         result = await c.set_position(
             position=math.nan,
             stop_position=desired_pos,
-            velocity=12.0, #15 #10
+            velocity=extend_speed, #15 #10
             maximum_torque=None,
             velocity_limit=30.0,
             watchdog_timeout=math.nan,
@@ -112,7 +116,7 @@ async def extend():
     await c.set_position(position=math.nan, velocity=0.0, kp_scale=10, maximum_torque=None, watchdog_timeout=math.nan)
     
 
-async def sheath():
+async def sheath(sheath_speed):
     c_data = await c.query()
     position_10 = c_data.values[moteus.Register.POSITION]
     desired_pos = position_10 + 1.55  #1.55 Opposite direction
@@ -138,7 +142,7 @@ async def sheath():
         result = await c.set_position(
             position=math.nan,
             stop_position=desired_pos,
-            velocity=10.0, #15
+            velocity=sheath_speed, #15
             maximum_torque=None,
             velocity_limit=30.0,
             watchdog_timeout=math.nan,
@@ -211,7 +215,7 @@ async def main():
             led.color = (0, 0, 1)  # Blue
             
             # Call the extend function
-            await extend()
+            await extend(speed_mapped)
 
             for delayTime in range (1,10):
                 await c.set_position(position=math.nan, velocity=0.0, kp_scale=10, maximum_torque=None, watchdog_timeout=math.nan)
@@ -237,7 +241,7 @@ async def main():
             print("Sheathing...")
             led.color = (1, 0.5, 0)  # Orange
             # Call the sheath function
-            obstruction_encountered = await sheath()
+            obstruction_encountered = await sheath(speed_mapped)
             if obstruction_encountered:
                 led.color = (1, 0, 0)  # Red
                 state = "waiting_to_home"
@@ -274,6 +278,10 @@ async def main():
             pass
 
         await asyncio.sleep(0.1)  # Small delay to prevent CPU overload in the loop
+        speed_value = mcp.read_adc(0)    
+        # print(speed_value)
+        speed_mapped = map_value(speed_value,0, 1023, 1.0, 12.0)
+        # print(speed_mapped)
 
 if __name__ == '__main__':
     loop = asyncio.get_event_loop()
